@@ -117,21 +117,40 @@
         {% endwith %}
         </div>
 
-        <form method="post" action="{{ url_for('make_post') }}">
+        <form method="post" action="{{ url_for('make_post') }}" id="formPost">
             <div class="row">
-                <div class="twelve columns">
-                    <label for="title-input">Name</label>
-                    <input class="u-full-width" name="title" id="title-input" type="text" required>
+                <div class="four columns">
+                    <label for="fileName">File name</label>
+                    <input class="u-full-width" name="fileName" id="fileName" type="text" required>
                 </div>
+                <div class="four columns">
+                    <label for="title">Title</label>
+                    <input class="u-full-width" name="title" id="title" type="text" required>
+                </div>
+                <div class="four columns">
+                    <label for="input-date">Date</label>
+                    <input class="u-full-width" name="input-date" id="input-date" type="text" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="four columns">
+                    <label for="input-category">Category</label>
+                    <input class="u-full-width" name="input-category" id="input-category" type="text">
+                </div>
+                <div class="four columns">
+                    <label for="input-tags">Tags</label>
+                    <input class="u-full-width" name="input-tags" id="input-tags" type="text">
+                </div>
+                <!--
+                <div class="four columns">
+                    <label for="title-input">Nothing</label>
+                    <input class="u-full-width" name="title" type="text">
+                </div>
+                -->
             </div>
             <!-- <label for="exampleMessage"> Content </label> -->
             <div class="u-full-width" id="epiceditor"></div>
             <textarea name="post" id="epictext" style="display:none" required>
-Title:
-Date:
-Category:
-TitleImage:
-Tags:
             </textarea>
             <input type="hidden" name="extension" value="md" />
             <br />
@@ -139,8 +158,7 @@ Tags:
             <br />
             <input type="hidden" name="password" value="password" />
             <br />
-
-            <input class="button-primary" id="post-button" value="Post" type="submit">
+            <input class="button-primary" id="post-button" value="Post" type="submit" onclick="makePost()">
         </form>
 
     </div>
@@ -162,8 +180,45 @@ Tags:
     </script>
 
     <footer>
-        <a href="github.com"> Pelican Post </a> by <a href="eswarm.in"> Eswar Malla </a>
+        <a href="https://github.com/eswarm/pelican-post"> Pelican Post </a> by <a href="http://eswarm.in/"> Eswar Malla </a>
     </footer>
+
+    <script>
+
+    function init() {
+        var element = document.getElementById('input-date');
+        var date = new Date();
+        element.value = date.toISOString().substring(0, 10) +  " " + date.getHours() + ":" + date.getMinutes();
+    }
+
+    window.onload = init();
+
+    function makePost() {
+        alert("makepost"); 
+        var formElement = document.getElementById('formPost');
+        var fileName = document.getElementById('fileName');
+        var title = document.getElementById('title');
+        var date = document.getElementById('input-date');
+        var category = document.getElementById('input-category');
+        var tags = document.getElementById('input-tags');
+
+        var titleText = "Title : " + title.value + "\n";
+        var dateText = "Date : " + date.value + "\n";
+        var categoryText = ""
+        var tagsText = "";
+
+        if(category.value.length != 0 )
+            categoryText = "Category : " + category.value + "\n";
+        if(tags.value.length != 0 )
+            tagsText = "Tags : " + tags.value + "\n";
+
+        var textElement = document.getElementById('epictext');
+        // prepend the text
+        textElement.value = titleText + dateText + categoryText + tagsText + textElement.value;
+        formElement.submit();
+    }
+
+    </script>
     <!-- End Document
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 </body>

@@ -6,7 +6,7 @@ import subprocess
 import os
 from flask_httpauth import HTTPDigestAuth
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
 app.config.from_pyfile('config.py', silent=True)
 
@@ -100,7 +100,7 @@ def write_post(title, typeFile, post) :
         shutil.move(title, os.path.join(app.config['PELICAN_PATH'], app.config['PELICAN_CONTENT']))
         exitVal = subprocess.call(["make", "-C", app.config['PELICAN_PATH'], "html"])
         print exitVal
-        copytree(os.path.join(app.config['PELICAN_PATH'],app.config['PELICAN_OUTPUT]), OUTPUT_DIR)
+        copytree(os.path.join(app.config['PELICAN_PATH'],app.config['PELICAN_OUTPUT']), OUTPUT_DIR)
         print "copy done"
     except :
         print("Exception in moving content")
@@ -121,4 +121,4 @@ def copytree(src, dst, symlinks=False, ignore=None):
                 shutil.copy2(s, d)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=app.config['PORT'],instance_relative_config=True)
+    app.run(host='0.0.0.0',port=app.config['PORT'])
