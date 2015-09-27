@@ -1,0 +1,87 @@
+#title {
+    text-align: center;
+    margin : 20px;
+}
+
+#post-button {
+display: block;
+margin: auto;
+margin-top : 20px;
+}
+
+#epiceditor {
+    min-height: 80%;
+}
+
+#fileImage {
+margin : auto;
+display: block !important;
+}
+
+#uploadImage {
+margin: auto;
+display: block !important;
+}
+
+.sectionHeader {
+    margin-top: 20px;
+    text-align: center;
+}
+aside {
+    margin-top: 50px;
+    position: absolute;
+    top : 100px;
+    left : 20px;
+    visibility: hidden;
+}
+
+@media (min-width: 1000px) {
+    aside {
+        visibility: visible;
+    }
+}
+
+.headerLink {
+    margin: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 40px;
+    margin-top : 40px;
+}
+
+#headerRow {
+background-color: #33C3F0;
+border-color: #33C3F0;
+color:white;
+}
+
+.headerLinks {
+    color : white;
+    text-decoration: none;
+}
+
+#pageTitle {
+    text-align: center;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin: 0 0 3em; /* bottom = footer height */
+}
+
+footer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3em;
+    width: 100%;
+    text-align: center;
+}

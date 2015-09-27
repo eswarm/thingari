@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title> Pelican post </title>
+    <meta name="description" content="Pelican post">
+    <meta name="author" content="Eswar Malla">
+
+    <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/normalize.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/skeleton.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+    <script src="{{ url_for('static', filename='js/epiceditor.js') }}"></script>
+</head>
+
+<body>
+
+    <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <!--
+  <aside>
+    <table id="markdown-help" class="u-full-width">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Syntax</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td> Heading </td>
+        <td>
+            # H1 <br />
+            ## H2 <br />
+            ### H3 <br />
+            #### H4 <br />
+            ##### H5 <br />
+            ###### H6 <br />
+        </td>
+      </tr>
+      <tr>
+        <td>Italics</td>
+        <td>
+             *asterisks* or _underscores_ <br/>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Bold</td>
+        <td>
+             **asterisks** or __underscores__ <br/>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Italics</td>
+        <td>
+             *asterisks* or _underscores_. <br/>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Italics</td>
+        <td>
+             *asterisks* or _underscores_. <br/>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+  </aside>
+  -->
+
+    <div class="container">
+        <header>
+            <h4 id="pageTitle"> Authorized Personnel only. </h4>
+            <div class="row" id="headerRow">
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/"> Post </a>
+                </div>
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/images"> Images </a>
+                </div>
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/browse"> Browse </a>
+                </div>
+            </div>
+        </header>
+
+        <div id="messages">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class=flashes>
+            {% for message in messages %}
+              <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+          {% endif %}
+        {% endwith %}
+        </div>
+
+        <form method="post" action="{{ url_for('make_post') }}">
+            <div class="row">
+                <div class="twelve columns">
+                    <label for="title-input">Name</label>
+                    <input class="u-full-width" name="title" id="title-input" type="text" required>
+                </div>
+            </div>
+            <!-- <label for="exampleMessage"> Content </label> -->
+            <div class="u-full-width" id="epiceditor"></div>
+            <textarea name="post" id="epictext" style="display:none" required>
+Title:
+Date:
+Category:
+TitleImage:
+Tags:
+            </textarea>
+            <input type="hidden" name="extension" value="md" />
+            <br />
+            <input type="hidden" name="username" value="user" />
+            <br />
+            <input type="hidden" name="password" value="password" />
+            <br />
+
+            <input class="button-primary" id="post-button" value="Post" type="submit">
+        </form>
+
+    </div>
+
+    <script>
+        var opts = {
+            autogrow: {
+                minHeight: 300
+            },
+            textarea: 'epictext',
+            basePath: '',
+            theme: {
+                base: "{{ url_for('static', filename='epiceditor/themes/base/epiceditor.css') }}",
+                preview: "{{ url_for('static', filename='epiceditor/themes/preview/preview-dark.css') }}",
+                editor: "{{ url_for('static', filename='epiceditor/themes/editor/epic-dark.css') }}"
+            },
+        };
+        var editor = new EpicEditor(opts).load();
+    </script>
+
+    <footer>
+        <a href="github.com"> Pelican Post </a> by <a href="eswarm.in"> Eswar Malla </a>
+    </footer>
+    <!-- End Document
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+
+</html>

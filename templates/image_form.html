@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <title>Test form</title>
+    <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}"> -->
+</head>
+
+<body>
+    <div id="container">
+        <div id="content">
+            <form method="post" action="{{ url_for('make_post') }}">
+                <label for="title">Please enter the title:</label>
+                <input type="text" name="title" />
+                <br />
+                <label for="post">Please enter the post:</label>
+                <input type="text" name="post" />
+                <br />
+                <label for="typeFile"> Type of file </label>
+                <input type="text" name="typeFile" />
+                <br />
+                <input type="hidden" name="username" value="user" />
+                <br />
+                <input type="hidden" name="password" value="password" />
+                <br />
+                <input type="submit" />
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

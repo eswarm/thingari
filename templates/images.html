@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title> Pelican post </title>
+    <meta name="description" content="Pelican post">
+    <meta name="author" content="Eswar Malla">
+
+    <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/normalize.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/skeleton.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+    <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+
+<body>
+
+    <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <div class="container">
+        <header>
+            <h4 id="pageTitle"> Authorized Personnel only. </h4>
+            <div class="row" id="headerRow">
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/"> Post </a>
+                </div>
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/images"> Images </a>
+                </div>
+                <div class="four columns headerLink">
+                    <a class="headerLinks" href="/browse"> Browse </a>
+                </div>
+            </div>
+        </header>
+
+        <div id="messages">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class=flashes>
+            {% for message in messages %}
+              <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+          {% endif %}
+        {% endwith %}
+        </div>
+
+        <form method="post" action="{{ url_for('upload_image') }}" enctype='multipart/form-data'>
+            <div class="row">
+                <div class="six columns">
+                    <input id="fileImage" type="file" name="file" accept="image/*" required>
+                </div>
+                <div class="six columns">
+                    <input class="button-primary" type="submit" id="uploadImage" value="Upload" />
+                </div>
+            </div>
+        </form>
+
+
+    </div>
+
+    <footer>
+        <a href="github.com"> Pelican Post </a> by <a href="eswarm.in"> Eswar Malla </a>
+    </footer>
+
+    <!-- End Document
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+
+</html>

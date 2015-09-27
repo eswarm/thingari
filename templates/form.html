@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Test form</title>
+    <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}"> -->
+    <script src="js/epiceditor.js"></script>
+</head>
+
+<body>
+    <div id="container">
+        <div id="content">
+
+            <div id="epiceditor">
+                <textarea id="markdown-text"></textarea>
+            </div>
+
+            <form method="post" action="{{ url_for('make_post') }}">
+                <label for="title">Please enter the title:</label>
+                <input type="text" name="title"> </input>
+                <br />
+                <label for="post">Please enter the post:</label>
+                <textarea type="text" name="post"></textarea>
+                <br />
+                <label for="typeFile"> Type of file </label>
+                <input type="text" name="extension"> </input>
+                <br />
+                <input type="hidden" name="username" value="user"></input>
+                <br />
+                <input type="hidden" name="password" value="password"></input>
+                <br />
+                <input type="submit"></input>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var opts = {
+            autogrow: true
+        };
+        var editor = new EpicEditor(opts).load();
+        alert(editor);
+    </script>
+</body>
+
+</html>
