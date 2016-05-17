@@ -19,10 +19,10 @@ def get_pw(username):
         return app.config['PASSWORD']
     return None
 
-@app.route('/')
+@app.route('/admin')
 @auth.login_required
-def home():
-    return render_template('index.html')
+def admin():
+    return render_template('admin.html')
 
 @app.route('/images')
 @auth.login_required
