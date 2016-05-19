@@ -1,9 +1,6 @@
+import sys, subprocess, os, urllib, shutil
 from flask import Flask, flash, request, redirect, render_template, url_for
-import shutil
 from werkzeug import secure_filename
-import sys
-import subprocess
-import os
 from flask_httpauth import HTTPDigestAuth
 
 app = Flask(__name__, instance_relative_config=True)
@@ -24,21 +21,26 @@ def get_pw(username):
 def admin():
     return render_template('admin.html')
 
-@app.route('/images')
+@app.route('/admin/images')
 @auth.login_required
 def images():
     return render_template('images.html')
 
-@app.route('/browse')
+@app.route('/admin/browse')
 @auth.login_required
 def browse():
     return render_template('browse.html')
+
+@app.route('/admin/settings')
+@auth.login_required
+def settings():
+    return render_template('settings.html')
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route('/image/post', methods=['POST'])
+@app.route('/admin/image/post', methods=['POST'])
 @auth.login_required
 def upload_image():
     if request.method == 'POST':
@@ -61,7 +63,7 @@ def valid_login(request):
     else :
         return False
 
-@app.route('/content/post',  methods=['POST'])
+@app.route('/admin/content/post',  methods=['POST'])
 @auth.login_required
 def make_post():
     title = request.form['title']
@@ -71,7 +73,7 @@ def make_post():
     flash(message)
     return redirect(url_for('home'))
 
-@app.route('/content/postna',  methods=['POST'])
+@app.route('/admin/content/postna',  methods=['POST'])
 def make_postna():
     # Make a post from the server, save it to markdown format.
     if valid_login(request):
@@ -119,6 +121,18 @@ def copytree(src, dst, symlinks=False, ignore=None):
         else:
             if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
                 shutil.copy2(s, d)
+
+def pelican_sm_downloaded():
+    pass
+
+def get_themes():
+    urllib.urlretrieve("https://raw.githubusercontent.com/getpelican/pelican-themes/master/.gitmodules", "pelican_themes", pelican_sm_downloaded)
+    
+
+
+
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=app.config['PORT'])

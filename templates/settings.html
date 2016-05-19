@@ -47,7 +47,36 @@
              </div>
          </div>
      </header>
-    </div>
+
+					<form>
+						<div class="row">
+
+							<label for="siteGenerator"> Static site generator </label>
+						      <select class="u-full-width" id="siteGenerator">
+						        <option value="pelican">Pelican</option>
+						        <option value="jekyll">Jekyll</option>
+						      </select>
+
+							<div class="twelve columns">
+								<label class="example-send-yourself-copy">
+										<input type="checkbox">
+										<span class="label-body">Use git for site content</span>
+								</label>
+							<label for="gitRepo">Git Repo for site content</label>
+							<input class="u-full-width" placeholder="https://test@bitbucket.org/test/blog.git" id="gitRepo" type="text">
+							</div>
+						<div class="twelve columns">
+					</div>
+
+			</div>
+
+			<input class="button-primary" id="settings-button" value="Save" type="submit">
+
+			</form>
+
+   </div>
+
+
 
     <footer>
         <a href="https://github.com/eswarm/pelican-post"> Pelican Post </a> by <a href="http://eswarm.in/"> Eswar Malla </a>

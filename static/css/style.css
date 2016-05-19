@@ -4,6 +4,12 @@
     margin-top: 20px;
 }
 
+#settings-button {
+  display: block;
+  margin: auto;
+  margin-top: 20px;
+}
+
 #epiceditor {
     min-height: 80%;
 }

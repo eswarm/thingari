@@ -92,14 +92,17 @@
         <header>
             <h4 id="pageTitle"> Authorized Personnel only. </h4>
             <div class="row" id="headerRow">
-                <div class="four columns headerLink">
-                    <a class="headerLinks" href="/"> Post </a>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin"> Post </a>
                 </div>
-                <div class="four columns headerLink">
-                    <a class="headerLinks" href="/images"> Images </a>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/images"> Images </a>
                 </div>
-                <div class="four columns headerLink">
-                    <a class="headerLinks" href="/browse"> Browse </a>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/browse"> Browse </a>
+                </div>
+																<div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/settings"> Settings </a>
                 </div>
             </div>
         </header>
@@ -193,7 +196,6 @@
     window.onload = init();
 
     function makePost() {
-        alert("makepost");
         var formElement = document.getElementById('formPost');
         var fileName = document.getElementById('fileName');
         var title = document.getElementById('title');
