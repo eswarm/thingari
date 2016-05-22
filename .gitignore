@@ -1,2 +1,5 @@
 instance/
 *.pyc
+db.json
+pelican_themes
+theme/

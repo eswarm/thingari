@@ -26,55 +26,89 @@
     <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <link rel="icon" type="image/png" href="images/favicon.png">
+    <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
+
 </head>
 
 <body>
     <div class="container">
-     <header>
-         <h4 id="pageTitle"> Authorized Personnel only. </h4>
-         <div class="row" id="headerRow">
-             <div class="three columns headerLink">
-                 <a class="headerLinks" href="/admin"> Post </a>
-             </div>
-             <div class="three columns headerLink">
-                 <a class="headerLinks" href="/admin/images"> Images </a>
-             </div>
-             <div class="three columns headerLink">
-                 <a class="headerLinks" href="/admin/browse"> Browse </a>
-             </div>
-             <div class="three columns headerLink">
-                 <a class="headerLinks" href="/admin/settings"> Settings </a>
-             </div>
-         </div>
-     </header>
+        <header>
+            <h4 id="pageTitle"> Authorized Personnel only. </h4>
+            <div class="row" id="headerRow">
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin"> Post </a>
+                </div>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/images"> Images </a>
+                </div>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/browse"> Browse </a>
+                </div>
+                <div class="three columns headerLink">
+                    <a class="headerLinks" href="/admin/settings"> Settings </a>
+                </div>
+            </div>
+        </header>
 
-					<form>
-						<div class="row">
+        <div id="messages">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class=flashes>
+            {% for message in messages %}
+              <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+          {% endif %}
+        {% endwith %}
+        </div>
+        
+        <form method="post" action="{{ url_for('save_settings') }}">
+            <div class="row">
+                <label for="site_generator"> Static site generator </label>
+                <select class="u-full-width" id="site_generator" name="site_generator">
+                    <option value="pelican">Pelican</option>
+                    <!-- <option value="jekyll">Jekyll</option> -->
+                </select>
+            </div>
 
-							<label for="siteGenerator"> Static site generator </label>
-						      <select class="u-full-width" id="siteGenerator">
-						        <option value="pelican">Pelican</option>
-						        <option value="jekyll">Jekyll</option>
-						      </select>
+            <!--
+            <div class="row">
+                <div class="twelve columns">
+                    <label class="example-send-yourself-copy">
+                        <input type="checkbox" id="use_git" name="use_git">
+                        <span class="label-body">Use git for site content</span>
+                    </label>
+                    <label for="gitRepo">Git Repo for site content</label>
+                    <input class="u-full-width" placeholder="https://test@bitbucket.org/test/blog.git" id="git_repo" type="text" name="git_repo">
+                </div>
 
-							<div class="twelve columns">
-								<label class="example-send-yourself-copy">
-										<input type="checkbox">
-										<span class="label-body">Use git for site content</span>
-								</label>
-							<label for="gitRepo">Git Repo for site content</label>
-							<input class="u-full-width" placeholder="https://test@bitbucket.org/test/blog.git" id="gitRepo" type="text">
-							</div>
-						<div class="twelve columns">
-					</div>
+            </div>
 
-			</div>
+            <div class="row">
+                <div class="six columns">
+                    <label for="username">Username</label>
+                    <input class="u-full-width" placeholder="username" id="username" type="text" name="git_username">
+                </div>
 
-			<input class="button-primary" id="settings-button" value="Save" type="submit">
+                <div class="six columns">
+                    <label for="password">Password</label>
+                    <input class="u-full-width" placeholder="Or personal access token" id="password" type="password" name="git_password">
+                </div>
+            </div>
+        -->
+            <div class="row">
+                <div class="six columns">
+                    <label for="themes">Theme</label>
+                    <select class="u-full-width" id="themes" name="theme">
+                    </select>
+                </div>
+            </div>
 
-			</form>
+            <input class="button-primary" id="settings-button" value="Save" type="submit">
 
-   </div>
+        </form>
+
+    </div>
 
 
 
@@ -83,6 +117,41 @@
     </footer>
     <!-- End Document
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script>
+$( document ).ready(function() {
+
+    $.ajax({
+    url: "/admin/get_pelican_themes",
+    type: "GET",
+    dataType : "json",
+   })
+  .done(function( jsonData ) {
+      var themes = jsonData["themes"];
+      var selectElement = $('#themes');
+      $.each(themes, function(key, value) {
+         console.log(key);
+         console.log(value);
+         selectElement.append($("<option></option>")
+                    .attr("value",value["url"])
+                    .text(value["name"]));
+      });
+      console.log(themes);
+  })
+  .fail(function( xhr, status, errorThrown ) {
+    alert( "Unable to get the themes!" );
+    console.log( "Error: " + errorThrown );
+    console.log( "Status: " + status );
+    console.dir( xhr );
+  })
+  .always(function( xhr, status ) {
+
+  });
+
+});
+// document ready
+
+
+</script>
 </body>
 
 </html>
