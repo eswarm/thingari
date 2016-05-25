@@ -2,8 +2,10 @@ import sys, subprocess, os, urllib2, shutil, re
 from flask import Flask, flash, request, redirect, render_template, url_for, g, jsonify
 from werkzeug import secure_filename
 from flask_httpauth import HTTPDigestAuth
-from tinydb import TinyDB, Query
 from urlparse import urlparse
+from sqlite3 import dbapi2 as sqlite3
+import json
+
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
@@ -16,21 +18,48 @@ PELICAN_THEME_TABLE = "pelican_theme_table"
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 APP_STATIC = os.path.join(APP_ROOT, 'static')
+DATABASE =  APP_ROOT + "./thingari.db"
+
+def connect_db():
+    """Connects to the specific database."""
+    print("connecting to the db")
+    rv = sqlite3.connect(DATABASE)
+    rv.row_factory = sqlite3.Row
+    return rv
+
+def init_db():
+    """Initializes the database."""
+    db = connect_db()
+    with app.open_resource('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+
+def initdb_command():
+    """Creates the database tables."""
+    init_db()
+    print('Initialized the database.')
+
 
 def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
     """
-    if not hasattr(g, 'app_db'):
-        g.app_db = TinyDB('db.json')
-    return g.app_db
-
+    if not hasattr(g, 'sqlite_db'):
+        g.sqlite_db = connect_db()
+    return g.sqlite_db
 
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
-    if hasattr(g, 'app_db'):
-        g.app_db.close()
+    print("Closing the db")
+    if hasattr(g, 'sqlite_db'):
+        g.sqlite_db.close()
+
+def query_db(query, args=(), one=False):
+    cur = get_db().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
 
 @auth.get_password
 def get_pw(username):
@@ -122,13 +151,24 @@ def save_settings():
 
 @app.route('/admin/get_pelican_themes')
 @auth.login_required
-def getPelicanThemes():
+def get_pelican_themes():
     db = get_db();
-    table = db.table(PELICAN_THEME_TABLE)
-    if len(table) == 0 :
+    cur = db.execute('select theme, url from %s' % (PELICAN_THEME_TABLE))
+    themes = cur.fetchall()
+
+    if len(themes) == 0 :
         get_themes()
-    themes = table.all()
-    return jsonify(themes = themes)
+        cur = db.execute('select theme, url from %s' % (PELICAN_THEME_TABLE))
+        themes = cur.fetchall()
+    print(type(themes))
+    themes_list = []
+    for t in themes :
+        d = {}
+        d["url"] = t["url"]
+        d["theme"] = t["theme"]
+        themes_list.append(d)
+    #print(themes)
+    return jsonify(themes=themes_list)
 
 
 def write_post(title, typeFile, post) :
@@ -169,7 +209,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
 def read_themes_file():
     with open("pelican_themes", "r") as f :
         db = get_db();
-        theme_table = db.table(PELICAN_THEME_TABLE)
+        db.execute("delete from %s" %(PELICAN_THEME_TABLE))
         while True :
             line1 = f.readline()
             line2 = f.readline()
@@ -190,7 +230,8 @@ def read_themes_file():
             else :
                 continue
             #themes[theme_name] = url
-            theme_table.insert({"name" : theme_name, "url" : url})
+            db.execute( "insert into pelican_theme_table (theme, url) values (?, ?) ", [theme_name, url] )
+        db.commit()
 
 @app.route('/admin/update_pelican_themes')
 @auth.login_required
@@ -212,14 +253,12 @@ def sync_settings():
                 exitVal = subprocess.call(["git", "clone", user_pref.git_repo , "site_content"])
 """
 
-def get_theme_repo(theme_url) :
+def get_theme_repo(theme_name) :
     db = get_db()
-    theme_table = db.table(PELICAN_THEME_TABLE)
-    theme_query = Query()
-    theme_res = theme_table.search(theme_query.url == theme_url)
-    if len(theme_res) < 1 :
-        return
-    theme_url = theme_res[0]["url"]
+    cur = db.execute("select theme, url from pelican_theme_table where theme = ? ", (theme_name, ))
+    res = cur.fetchone()
+    print(res)
+    theme_url = res["url"]
     os.chdir(APP_ROOT)
     if not os.path.exists("./theme"):
         os.mkdir("./theme")
@@ -231,6 +270,16 @@ def get_theme_repo(theme_url) :
     os.chdir(repo_name)
     exitVal = subprocess.call(["git", "pull"])
 
+def update_theme(theme_name) :
+    db = get_db()
+    cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
+    res_themes = cur.fetchall()
+    #print(" update theme " + str(cur.count) + str(cur.rowcount) + str(cur) + str(dir(res_themes)) + str(res_themes) )
+    if len(res_themes) == 1 :
+        db.execute("update user_table set theme = ? where user_name = ?", (theme_name, app.config["USERNAME"]) )
+    else :
+        db.execute("insert into user_table (user_name, site_generator, theme, use_git ) values(? , ? , ? , ? )" , (app.config["USERNAME"], "pelican", theme_name, False) )
+    db.commit()
 
 @app.route('/admin/save_settings', methods=['POST'])
 @auth.login_required
@@ -242,22 +291,24 @@ def save_settings():
     #git_username = request.form['git_username']
     #git_password = request.form['git_password']
     theme = request.form['theme']
-
-    db = get_db()
-    table = db.table(USER_TABLE)
-    user_pref = { "user_name" : app.config["USERNAME"], "site_generator" : site_generator,
-                "theme" : theme}
-    """
-    "use_git" : use_git,
-    "git_repo" : git_repo, "git_username" : git_username, "git_password" : git_password,
-    """
-    table.insert(user_pref)
-    print theme
+    update_theme(theme)
+    #print "updated table " + table.all()
     get_theme_repo(theme)
     message  = '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
     flash(message)
     return redirect(url_for('settings'))
     #return write_post(title, typeFile, post)
+
+@app.route('/admin/get_user_settings')
+@auth.login_required
+def get_user_settings():
+    db = get_db()
+    cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
+    user_res = cur.fetchone()
+    user = {}
+    user["theme"] = user_res["theme"]
+    user["user_name"] = user_res["user_name"]
+    return jsonify(user_res)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=app.config['PORT'], debug=True)
