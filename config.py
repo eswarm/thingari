@@ -6,6 +6,6 @@ PELICAN_PATH = "./pelican"
 PELICAN_CONTENT = "content"
 PELICAN_OUTPUT = "output"
 IMAGES = "images"
-OUTPUT_DIR = "/var/www/output/"
+OUTPUT_DIR = "./html"
 SECRET_KEY = 'secret key here'
 PORT = 80

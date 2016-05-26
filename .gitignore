@@ -4,3 +4,4 @@ db.json
 pelican_themes
 theme/
 *.db
+pelican/

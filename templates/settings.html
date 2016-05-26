@@ -6,8 +6,8 @@
     <!-- Basic Page Needs
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <meta charset="utf-8">
-    <title> Pelican post </title>
-    <meta name="description" content="Pelican post">
+    <title> Thingari </title>
+    <meta name="description" content="Thingari">
     <meta name="author" content="Eswar Malla">
 
     <!-- Mobile Specific Metas
@@ -71,19 +71,19 @@
                 </select>
             </div>
 
-            <!--
+
             <div class="row">
                 <div class="twelve columns">
-                    <label class="example-send-yourself-copy">
+                    <label>
                         <input type="checkbox" id="use_git" name="use_git">
                         <span class="label-body">Use git for site content</span>
                     </label>
-                    <label for="gitRepo">Git Repo for site content</label>
-                    <input class="u-full-width" placeholder="https://test@bitbucket.org/test/blog.git" id="git_repo" type="text" name="git_repo">
+                    <label for="gitRepo">Git Repo for site content, use ssh</label>
+                    <input class="u-full-width" placeholder="git@github.com:eswarm/thingari.git" id="git_repo" type="text" name="git_repo">
                 </div>
-
             </div>
 
+            <!--
             <div class="row">
                 <div class="six columns">
                     <label for="username">Username</label>
@@ -111,7 +111,7 @@
     </div>
 
     <footer>
-        <a href="https://github.com/eswarm/pelican-post"> Pelican Post </a> by <a href="http://eswarm.in/"> Eswar Malla </a>
+        <a href="https://github.com/eswarm/pelican-post"> Thingari </a> by <a href="http://eswarm.in/"> Eswar Malla </a>
     </footer>
     <!-- End Document
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -125,11 +125,13 @@
       dataType : "json",
      })
      .done(function( jsonData ) {
-        console.log(jsonData); 
+        console.log(jsonData);
         var user = jsonData;
-        console.log(user.theme);
+        console.log(user);
         var selectElement = $('#themes');
         selectElement.val(user.theme);
+        $('#git_repo').val(user.git_repo);
+        $('#use_git').prop('checked', user.use_git)
         })
      .fail(function( xhr, status, errorThrown ) {
       alert( "Unable to get the user preferences" );

@@ -15,5 +15,5 @@ create table user_table (
     git_repo text,
     git_username text,
     git_password text,
-    use_git boolean NOT NULL
+    use_git bool NOT NULL
 );

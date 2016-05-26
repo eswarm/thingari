@@ -34,12 +34,6 @@ def init_db():
         db.cursor().executescript(f.read())
     db.commit()
 
-def initdb_command():
-    """Creates the database tables."""
-    init_db()
-    print('Initialized the database.')
-
-
 def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
@@ -183,10 +177,18 @@ def write_post(title, typeFile, post) :
         print("unable to write the file")
         return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("failed", "unable to write the file \n" + str(sys.exc_info()[0]))
     try :
+        print("Moving file")
         shutil.move(title, os.path.join(app.config['PELICAN_PATH'], app.config['PELICAN_CONTENT']))
-        exitVal = subprocess.call(["make", "-C", app.config['PELICAN_PATH'], "html"])
-        print exitVal
-        copytree(os.path.join(app.config['PELICAN_PATH'],app.config['PELICAN_OUTPUT']), OUTPUT_DIR)
+        print("Running make " + get_theme_dir())
+        os.chdir(app.config['PELICAN_PATH'])
+        exitVal = subprocess.call(["pelican", "-t", "../theme/" + get_theme_dir(), "-o", "../html"])
+        print("Exit val " + str(exitVal))
+
+        os.chdir(APP_ROOT)
+
+        if not os.path.exists(app.config['OUTPUT_DIR']) :
+            os.mkdir(app.config['OUTPUT_DIR'])
+        copytree(os.path.join(app.config['PELICAN_PATH'],app.config['PELICAN_OUTPUT']), app.config['OUTPUT_DIR'])
         print "copy done"
     except :
         print("Exception in moving content")
@@ -197,6 +199,9 @@ def write_post(title, typeFile, post) :
 def copytree(src, dst, symlinks=False, ignore=None):
     if not os.path.exists(dst):
         os.makedirs(dst)
+    if not os.path.exists(src):
+        print("Source directory %s not present" %(src))
+        return
     for item in os.listdir(src):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
@@ -253,51 +258,79 @@ def sync_settings():
                 exitVal = subprocess.call(["git", "clone", user_pref.git_repo , "site_content"])
 """
 
+def get_dir_from_repo(theme_url) :
+    git_path = urlparse(theme_url).path
+    #print(git_path)
+    repo_name = git_path[ git_path.rfind("/") + 1: ]
+    #print(repo_name)
+    if repo_name.find(".git") != -1 :
+        repo_name = repo_name[:repo_name.find(".git")]
+    return repo_name
+
 def get_theme_repo(theme_name) :
     db = get_db()
     cur = db.execute("select theme, url from pelican_theme_table where theme = ? ", (theme_name, ))
     res = cur.fetchone()
     print(res)
     theme_url = res["url"]
+    print(theme_url)
     os.chdir(APP_ROOT)
     if not os.path.exists("./theme"):
         os.mkdir("./theme")
     os.chdir("./theme")
     exitVal = subprocess.call(["git", "clone", theme_url])
-    git_path = urlparse(theme_url).path
-    repo_name = git_path[ git_path.rfind("/") + 1: ]
-    repo_name = repo_name[  : repo_name.find(".git") ]
+    repo_name = get_dir_from_repo(theme_url)
     os.chdir(repo_name)
     exitVal = subprocess.call(["git", "pull"])
+    os.chdir(APP_ROOT)
 
-def update_theme(theme_name) :
+def change_settings(use_git, git_repo, theme_name) :
     db = get_db()
     cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
     res_themes = cur.fetchall()
+    print("change settings to " + str(use_git) + str(git_repo) + str(theme_name) )
     #print(" update theme " + str(cur.count) + str(cur.rowcount) + str(cur) + str(dir(res_themes)) + str(res_themes) )
     if len(res_themes) == 1 :
-        db.execute("update user_table set theme = ? where user_name = ?", (theme_name, app.config["USERNAME"]) )
+        db.execute("update user_table set theme = ?, use_git = ?, git_repo = ? where user_name = ?", (theme_name, use_git, git_repo, app.config["USERNAME"]) )
     else :
-        db.execute("insert into user_table (user_name, site_generator, theme, use_git ) values(? , ? , ? , ? )" , (app.config["USERNAME"], "pelican", theme_name, False) )
+        db.execute("insert into user_table (user_name, site_generator, theme, use_git, git_repo ) values(? , ? , ? , ?, ? )" , (app.config["USERNAME"], "pelican", theme_name, use_git, git_repo) )
     db.commit()
 
 @app.route('/admin/save_settings', methods=['POST'])
 @auth.login_required
 def save_settings():
-    print "save_settings"
+    print("save_settings")
     site_generator = request.form['site_generator']
-    #use_git = request.form['use_git']
-    #git_repo = request.form['git_repo']
+    if request.form.has_key('use_git') :
+        use_git = True
+    else:
+        use_git = False
+    git_repo = request.form['git_repo']
     #git_username = request.form['git_username']
     #git_password = request.form['git_password']
     theme = request.form['theme']
-    update_theme(theme)
+    change_settings(use_git, git_repo, theme)
     #print "updated table " + table.all()
     get_theme_repo(theme)
     message  = '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
     flash(message)
     return redirect(url_for('settings'))
     #return write_post(title, typeFile, post)
+
+def get_theme_dir():
+    db = get_db()
+    cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
+    user_res = cur.fetchone()
+    user = {}
+    #print(user_res)
+    if user_res :
+        cur = db.execute("select theme, url from pelican_theme_table where theme = ? ", (user_res["theme"], ))
+        res = cur.fetchone()
+        theme_url = res["url"]
+        return get_dir_from_repo(theme_url)
+    else :
+        return None
+
 
 @app.route('/admin/get_user_settings')
 @auth.login_required
@@ -306,9 +339,15 @@ def get_user_settings():
     cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
     user_res = cur.fetchone()
     user = {}
-    user["theme"] = user_res["theme"]
-    user["user_name"] = user_res["user_name"]
-    return jsonify(user_res)
+    print(user_res)
+    if user_res :
+        user["theme"] = user_res["theme"]
+        user["user_name"] = user_res["user_name"]
+        user["git_repo"] = user_res["git_repo"]
+        user["use_git"] = user_res["use_git"]
+        return jsonify(user_res)
+    else :
+        return jsonify({"user" : None})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=app.config['PORT'], debug=True)
