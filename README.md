@@ -1,4 +1,4 @@
-# pelican-post
+# Thingari
 Tiny web service to post content to your pelican blog 
 
 *work in progress* 
