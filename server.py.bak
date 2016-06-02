@@ -1,8 +1,8 @@
-import sys, subprocess, os, urllib.request, urllib.error, urllib.parse, shutil, re
+import sys, subprocess, os, urllib2, shutil, re
 from flask import Flask, flash, request, redirect, render_template, url_for, g, jsonify
 from werkzeug import secure_filename
 from flask_httpauth import HTTPDigestAuth
-from urllib.parse import urlparse
+from urlparse import urlparse
 from sqlite3 import dbapi2 as sqlite3
 import json
 
@@ -154,7 +154,7 @@ def get_pelican_themes():
         get_themes()
         cur = db.execute('select theme, url from %s' % (PELICAN_THEME_TABLE))
         themes = cur.fetchall()
-    print((type(themes)))
+    print(type(themes))
     themes_list = []
     for t in themes :
         d = {}
@@ -179,10 +179,10 @@ def write_post(title, typeFile, post) :
     try :
         print("Moving file")
         shutil.move(title, os.path.join(app.config['PELICAN_PATH'], app.config['PELICAN_CONTENT']))
-        print(("Running make " + get_theme_dir()))
+        print("Running make " + get_theme_dir())
         os.chdir(app.config['PELICAN_PATH'])
         exitVal = subprocess.call(["pelican", "-t", "../theme/" + get_theme_dir(), "-o", "../html"])
-        print(("Exit val " + str(exitVal)))
+        print("Exit val " + str(exitVal))
 
         os.chdir(APP_ROOT)
 
@@ -192,7 +192,7 @@ def write_post(title, typeFile, post) :
         print("copy done")
     except :
         print("Exception in moving content")
-        print((sys.exc_info()))
+        print(sys.exc_info())
         return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("failed", "Exception in moving content \n" + str(sys.exc_info()[0]))
     return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
 
@@ -200,7 +200,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
     if not os.path.exists(dst):
         os.makedirs(dst)
     if not os.path.exists(src):
-        print(("Source directory %s not present" %(src)))
+        print("Source directory %s not present" %(src))
         return
     for item in os.listdir(src):
         s = os.path.join(src, item)
@@ -241,7 +241,7 @@ def read_themes_file():
 @app.route('/admin/update_pelican_themes')
 @auth.login_required
 def get_themes():
-    response = urllib.request.urlopen("https://raw.githubusercontent.com/getpelican/pelican-themes/master/.gitmodules")
+    response = urllib2.urlopen("https://raw.githubusercontent.com/getpelican/pelican-themes/master/.gitmodules")
     with open('pelican_themes','w') as output:
         output.write(response.read())
     read_themes_file()
@@ -288,7 +288,7 @@ def change_settings(use_git, git_repo, theme_name) :
     db = get_db()
     cur = db.execute("select * from user_table where user_name = ?", (app.config["USERNAME"],) )
     res_themes = cur.fetchall()
-    print(("change settings to " + str(use_git) + str(git_repo) + str(theme_name) ))
+    print("change settings to " + str(use_git) + str(git_repo) + str(theme_name) )
     #print(" update theme " + str(cur.count) + str(cur.rowcount) + str(cur) + str(dir(res_themes)) + str(res_themes) )
     if len(res_themes) == 1 :
         db.execute("update user_table set theme = ?, use_git = ?, git_repo = ? where user_name = ?", (theme_name, use_git, git_repo, app.config["USERNAME"]) )
@@ -301,7 +301,7 @@ def change_settings(use_git, git_repo, theme_name) :
 def save_settings():
     print("save_settings")
     site_generator = request.form['site_generator']
-    if 'use_git' in request.form :
+    if request.form.has_key('use_git') :
         use_git = True
     else:
         use_git = False
