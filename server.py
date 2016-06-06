@@ -6,7 +6,6 @@ from urllib.parse import urlparse
 from sqlite3 import dbapi2 as sqlite3
 import json
 
-
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
 app.config.from_pyfile('config.py', silent=True)
@@ -27,6 +26,7 @@ def connect_db():
     rv.row_factory = sqlite3.Row
     return rv
 
+@app.cli.command()
 def init_db():
     """Initializes the database."""
     db = connect_db()
@@ -99,7 +99,7 @@ def upload_image():
                 flash('Success - Image uploaded')
                 return redirect(url_for('images'))
         except :
-            flash('Failed - Uploading image')
+            flash('Failed - Uploading image', 'error')
             return redirect(url_for('images'))
 
 def valid_login(request):
@@ -175,6 +175,7 @@ def write_post(title, typeFile, post) :
         fd.close()
     except :
         print("unable to write the file")
+        flash("unable to write te file", "error")
         return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("failed", "unable to write the file \n" + str(sys.exc_info()[0]))
     try :
         print("Moving file")
@@ -193,6 +194,7 @@ def write_post(title, typeFile, post) :
     except :
         print("Exception in moving content")
         print((sys.exc_info()))
+        flash("Problem in moving content " + str(sys.exc_info()[0]) , "error")
         return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("failed", "Exception in moving content \n" + str(sys.exc_info()[0]))
     return '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
 
@@ -241,10 +243,13 @@ def read_themes_file():
 @app.route('/admin/update_pelican_themes')
 @auth.login_required
 def get_themes():
-    response = urllib.request.urlopen("https://raw.githubusercontent.com/getpelican/pelican-themes/master/.gitmodules")
-    with open('pelican_themes','w') as output:
-        output.write(response.read())
-    read_themes_file()
+    try :
+        response = urllib.request.urlopen("https://raw.githubusercontent.com/getpelican/pelican-themes/master/.gitmodules")
+        with open('pelican_themes','wb') as output:
+            output.write(response.read())
+        read_themes_file()
+    except:
+        flash("Unable to get the theme file \n" + str(sys.exc_info()[0]), "error")
 
 """
 def sync_settings():
@@ -279,10 +284,38 @@ def get_theme_repo(theme_name) :
         os.mkdir("./theme")
     os.chdir("./theme")
     exitVal = subprocess.call(["git", "clone", theme_url])
+    print("Clone result " + str(exitVal))
     repo_name = get_dir_from_repo(theme_url)
     os.chdir(repo_name)
     exitVal = subprocess.call(["git", "pull"])
     os.chdir(APP_ROOT)
+
+def get_blog_repo(repo_url):
+    exitVal = subprocess.call(["git", "clone", repo_url])
+    os.chdir(APP_ROOT)
+    if not os.path.exists("./blog"):
+        os.mkdir("./blog")
+    os.chdir("./blog")
+    exitVal = subprocess.call(["git", "clone", repo_url])
+    os.chdir(APP_ROOT)
+
+def flash_error(val, message) :
+    if val != 0 :
+        flash(message, "error")
+
+def update_blog(repo_url):
+    repo_name = get_dir_from_repo(repo_url)
+    os.chdir(APP_ROOT)
+    blog_path = os.path.join("./blog", repo_name)
+    os.chdir(blog_path)
+    exitVal = subprocess.call(["git", "pull"])
+    flash_error(exitVal, "Error in git pull")
+    exitVal = subprocess.call(["git", "add", "."])
+    flash_error(exitVal, "Error in git add ")
+    exitVal = subprocess.call(["git", "commit", "-m" , "commit by thingari"])
+    flash_error(exitVal, "Error in git commit")
+    exitVal = subprocess.call("git", "push")
+    flash_error(exitVal, "Error in git push")
 
 def change_settings(use_git, git_repo, theme_name) :
     db = get_db()
@@ -312,6 +345,7 @@ def save_settings():
     change_settings(use_git, git_repo, theme)
     #print "updated table " + table.all()
     get_theme_repo(theme)
+    get_blog_repo(git_repo)
     message  = '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
     flash(message)
     return redirect(url_for('settings'))
@@ -345,7 +379,7 @@ def get_user_settings():
         user["user_name"] = user_res["user_name"]
         user["git_repo"] = user_res["git_repo"]
         user["use_git"] = user_res["use_git"]
-        return jsonify(user_res)
+        return jsonify(user)
     else :
         return jsonify({"user" : None})
 

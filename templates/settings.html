@@ -51,13 +51,13 @@
         </header>
 
         <div id="messages">
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <div class=flashes>
             {% for message in messages %}
               <div>{{ message }}</div>
             {% endfor %}
-        </div>
+            </div>
           {% endif %}
         {% endwith %}
         </div>
