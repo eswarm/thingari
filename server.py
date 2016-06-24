@@ -283,12 +283,19 @@ def get_theme_repo(theme_name) :
     if not os.path.exists("./theme"):
         os.mkdir("./theme")
     os.chdir("./theme")
-    exitVal = subprocess.call(["git", "clone", theme_url])
-    print("Clone result " + str(exitVal))
     repo_name = get_dir_from_repo(theme_url)
+    if not os.path.exists(repo_name):
+        try :
+            message = subprocess.check_output(["git", "clone", theme_url])
+        except CalledProcessError :
+            message += "git clone failed"
     os.chdir(repo_name)
-    exitVal = subprocess.call(["git", "pull"])
+    try :
+        message += subprocess.check_output(["git", "pull"])
+    except CalledProcessError:
+        message += "git pull failed"
     os.chdir(APP_ROOT)
+    return message
 
 def get_blog_repo(repo_url):
     exitVal = subprocess.call(["git", "clone", repo_url])
@@ -296,8 +303,12 @@ def get_blog_repo(repo_url):
     if not os.path.exists("./blog"):
         os.mkdir("./blog")
     os.chdir("./blog")
-    exitVal = subprocess.call(["git", "clone", repo_url])
+    try :
+        message = subprocess.check_output(["git", "clone", repo_url])
+    except CalledProcessError :
+        message += "git clone failed, blog"
     os.chdir(APP_ROOT)
+    return message
 
 def flash_error(val, message) :
     if val != 0 :
@@ -309,13 +320,18 @@ def update_blog(repo_url):
     blog_path = os.path.join("./blog", repo_name)
     os.chdir(blog_path)
     exitVal = subprocess.call(["git", "pull"])
-    flash_error(exitVal, "Error in git pull")
+    if exitVal != 0 :
+        errorMessage += "Error in git pull"
     exitVal = subprocess.call(["git", "add", "."])
-    flash_error(exitVal, "Error in git add ")
+    if exitVal != 0 :
+        errorMessage += "Error in git add "
     exitVal = subprocess.call(["git", "commit", "-m" , "commit by thingari"])
-    flash_error(exitVal, "Error in git commit")
+    if exitVal != 0 :
+        errorMessage += "Error in git commit"
     exitVal = subprocess.call("git", "push")
-    flash_error(exitVal, "Error in git push")
+    if exitVal != 0 :
+        errorMessage += "Error in git push"
+    return errorMessage
 
 def change_settings(use_git, git_repo, theme_name) :
     db = get_db()
@@ -344,9 +360,9 @@ def save_settings():
     theme = request.form['theme']
     change_settings(use_git, git_repo, theme)
     #print "updated table " + table.all()
-    get_theme_repo(theme)
-    get_blog_repo(git_repo)
-    message  = '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
+    message = get_theme_repo(theme)
+    message += get_blog_repo(git_repo)
+    #message  = '{{ "status" : "{0}", "message" : "{1}"  }}'.format("success", "")
     flash(message)
     return redirect(url_for('settings'))
     #return write_post(title, typeFile, post)
